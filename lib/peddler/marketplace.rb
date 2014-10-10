@@ -41,7 +41,7 @@ module Peddler
     private
 
     def find_host
-      HOSTS.fetch(id) { raise BadId }
+      HOSTS.fetch(id) { 'mws-eu.amazonservices.com' }
     end
 
     def japanese?
