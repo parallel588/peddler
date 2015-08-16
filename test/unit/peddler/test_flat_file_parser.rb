@@ -1,4 +1,4 @@
-require 'test_helper'
+require 'helper'
 require 'peddler/flat_file_parser'
 
 class TestPeddlerFlatFileParser < MiniTest::Test
@@ -13,6 +13,12 @@ class TestPeddlerFlatFileParser < MiniTest::Test
 
   def test_parses_data
     assert_kind_of CSV::Table, @parser.parse
+  end
+
+  def test_parses_data_a_line_at_a_time
+    counter = 0
+    @parser.parse { counter += 1 }
+    assert counter > 0
   end
 
   def test_summarises

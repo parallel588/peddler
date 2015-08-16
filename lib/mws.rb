@@ -2,6 +2,7 @@ require 'forwardable'
 require 'mws/cart_information'
 require 'mws/customer_information'
 require 'mws/feeds'
+require 'mws/finances'
 require 'mws/fulfillment_inbound_shipment'
 require 'mws/fulfillment_inventory'
 require 'mws/fulfillment_outbound_shipment'
@@ -12,6 +13,7 @@ require 'mws/recommendations'
 require 'mws/reports'
 require 'mws/sellers'
 require 'mws/subscriptions'
+require 'mws/webstore'
 
 module MWS
   class << self

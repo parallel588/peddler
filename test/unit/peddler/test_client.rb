@@ -1,10 +1,12 @@
-require 'test_helper'
+require 'helper'
 require 'excon'
 require 'peddler/client'
 
 class TestPeddlerClient < MiniTest::Test
   module Parser
-    def self.parse(res, *); res; end
+    def self.new(res, *)
+      res
+    end
   end
 
   def setup
@@ -18,7 +20,7 @@ class TestPeddlerClient < MiniTest::Test
     @client.aws_access_key_id = 'key'
     @client.aws_secret_access_key = 'secret'
     @client.merchant_id = 'seller'
-    @client.marketplace_id = 'ATVPDKIKX0DER' # US
+    @client.primary_marketplace_id = 'ATVPDKIKX0DER' # US
     @client.operation('Foo')
   end
 
@@ -44,11 +46,19 @@ class TestPeddlerClient < MiniTest::Test
   end
 
   def test_has_user_agent
-    assert @client.connection.data[:headers].has_key?('User-Agent')
+    assert @client.connection.data[:headers].key?('User-Agent')
   end
 
   def test_inherits_parents_params
     assert_equal Peddler::Client.params, @klass.params
+  end
+
+  def test_params_include_seller_id
+    assert @klass.params.key?("SellerId")
+  end
+
+  def test_params_include_auth_token
+    @klass.params.key?("MWSAuthToken")
   end
 
   def test_configures
@@ -72,7 +82,7 @@ class TestPeddlerClient < MiniTest::Test
   end
 
   def test_sets_content_type_header_for_chinese_flat_file_body
-    @client.marketplace_id = 'AAHKV2X7AFYLW'
+    @client.primary_marketplace_id = 'AAHKV2X7AFYLW'
     @client.body = 'foo'
     content_type = @client.headers.fetch('Content-Type')
 
@@ -80,7 +90,7 @@ class TestPeddlerClient < MiniTest::Test
   end
 
   def test_sets_content_type_header_for_japanese_flat_file_body
-    @client.marketplace_id = 'A1VC38T7YXB528'
+    @client.primary_marketplace_id = 'A1VC38T7YXB528'
     @client.body = 'foo'
     content_type = @client.headers.fetch('Content-Type')
 
@@ -123,6 +133,96 @@ class TestPeddlerClient < MiniTest::Test
     @client.run
     headers = instrumentor.events['excon.request'][:headers]
 
-    assert headers.has_key?('User-Agent')
+    assert headers.key?('User-Agent')
+  end
+
+  def test_error_callback_on_class
+    Excon.stub({}, status: 503)
+
+    assert_raises(Excon::Errors::ServiceUnavailable) do
+      @client.run
+    end
+
+    @klass.on_error do |e|
+      assert_equal 503, e.response.status
+    end
+    @client.run # no longer raises
+
+    Excon.stubs.clear
+  end
+
+  def test_error_callback_on_instance
+    Excon.stub({}, status: 503)
+
+    assert_raises(Excon::Errors::ServiceUnavailable) do
+      @client.run
+    end
+
+    @client.on_error do |e|
+      assert_equal 503, e.response.status
+    end
+    @client.run
+
+    Excon.stubs.clear
+  end
+
+  def test_error_callback_on_client_ancestor
+    Excon.stub({}, status: 503)
+
+    @klass.on_error do |e|
+      assert_equal 503, e.response.status
+    end
+    @client.run # no longer raises
+
+    klass = Class.new(Peddler::Client)
+    klass.parser = Parser
+    other_client = klass.new
+    other_client.aws_access_key_id = 'key'
+    other_client.aws_secret_access_key = 'secret'
+    other_client.merchant_id = 'seller'
+    other_client.primary_marketplace_id = 'ATVPDKIKX0DER' # US
+    other_client.operation('Foo')
+    assert_raises(Excon::Errors::ServiceUnavailable) do
+      other_client.run
+    end
+
+    Excon.stubs.clear
+  end
+
+  def test_decorates_error_response
+    res = {
+      body: '<ErrorResponse><Error>Foo</Error></ErrorResponse>',
+      status: 503
+    }
+    Excon.stub({}, res)
+    e = nil
+
+    begin
+      @client.run
+    rescue => e
+      assert e.response.parse
+    end
+
+    assert e
+  end
+
+  def test_deprecated_error_callback
+    Excon.stub({}, status: 503)
+
+    @client.on_error do |_, res|
+      assert_equal 503, res.status
+    end
+    assert_output nil, /DEPRECATION/ do
+      @client.run
+    end
+
+    Excon.stubs.clear
+  end
+
+  def test_deprecated_marketplace_id_accessor
+    refute_nil @client.marketplace_id
+    @client.marketplace_id = "123"
+    assert_equal "123", @client.marketplace_id
+    assert_equal @client.primary_marketplace_id, @client.marketplace_id
   end
 end

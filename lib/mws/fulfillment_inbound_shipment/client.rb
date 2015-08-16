@@ -7,7 +7,8 @@ module MWS
     # also request lists of inbound shipments or inbound shipment items based on
     # criteria that you specify.
     class Client < ::Peddler::Client
-      path '/FulfillmentInboundShipment/2010-10-01'
+      version "2010-10-01"
+      path "/FulfillmentInboundShipment/#{version}"
 
       # Returns the information required to create an inbound shipment
       #
@@ -19,12 +20,10 @@ module MWS
       # @return [Peddler::XMLParser]
       def create_inbound_shipment_plan(ship_from_address, inbound_shipment_plan_request_items, opts = {})
         operation('CreateInboundShipmentPlan')
-          .add(
-            opts.merge(
-              'ShipFromAddress' => ship_from_address,
-              'InboundShipmentPlanRequestItems' => inbound_shipment_plan_request_items
-            )
-          )
+          .add(opts.update(
+                 'ShipFromAddress' => ship_from_address,
+                 'InboundShipmentPlanRequestItems' => inbound_shipment_plan_request_items
+          ))
           .structure!('InboundShipmentPlanRequestItems', 'member')
 
         run
@@ -40,12 +39,10 @@ module MWS
       # @return [Peddler::XMLParser]
       def create_inbound_shipment(shipment_id, inbound_shipment_header, opts = {})
         operation('CreateInboundShipment')
-          .add(
-            opts.merge(
-              'ShipmentId' => shipment_id,
-              'InboundShipmentHeader' => inbound_shipment_header
-            )
-          )
+          .add(opts.update(
+                 'ShipmentId' => shipment_id,
+                 'InboundShipmentHeader' => inbound_shipment_header
+          ))
           .structure!('InboundShipmentItems', 'member')
 
         run
@@ -61,12 +58,10 @@ module MWS
       # @return [Peddler::XMLParser]
       def update_inbound_shipment(shipment_id, inbound_shipment_header, opts = {})
         operation('UpdateInboundShipment')
-          .add(
-            opts.merge(
-              'ShipmentId' => shipment_id,
-              'InboundShipmentHeader' => inbound_shipment_header
-            )
-          )
+          .add(opts.update(
+                 'ShipmentId' => shipment_id,
+                 'InboundShipmentHeader' => inbound_shipment_header
+          ))
           .structure!('InboundShipmentItems', 'member')
 
         run
@@ -88,6 +83,7 @@ module MWS
             'ShipmentType' => shipment_type,
             'TransportDetails' => transport_details
           )
+          .structure!('PackageList', 'member')
 
         run
       end
@@ -145,9 +141,9 @@ module MWS
       # @return [Peddler::XMLParser]
       def get_package_labels(shipment_id, page_type, opts = {})
         operation('GetPackageLabels')
-          .add(opts.merge(
-            'ShipmentId' => shipment_id,
-            'PageType' => page_type
+          .add(opts.update(
+                 'ShipmentId' => shipment_id,
+                 'PageType' => page_type
           ))
 
         run

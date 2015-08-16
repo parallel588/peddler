@@ -13,7 +13,8 @@ module MWS
     # on when they were fulfilled and by the fulfillment method associated with
     # them.
     class Client < ::Peddler::Client
-      path '/FulfillmentOutboundShipment/2010-10-01'
+      version "2010-10-01"
+      path "/FulfillmentOutboundShipment/#{version}"
 
       # Lists fulfillment order previews
       #
@@ -30,7 +31,7 @@ module MWS
         end
 
         operation('GetFulfillmentPreview')
-          .add(opts.merge('Address' => address, 'Items' => items))
+          .add(opts.update('Address' => address, 'Items' => items))
           .structure!('Items', 'member')
           .structure!('ShippingSpeedCategories')
 
@@ -47,13 +48,14 @@ module MWS
       # @param displayable_order_comment [String]
       # @param shipping_speed_category [String]
       # @param destination_address [Struct, Hash]
-      # @params items [Array<Struct, Hash>]
+      # @param items [Array<Struct, Hash>]
       # @param opts [Hash]
       # @option opts [String] :fulfillment_action
       # @option opts [String] :fulfillment_policy
       # @option opts [Array<String>] :notification_email_list
       # @option opts [Struct, Hash] :cod_settings
       # @return [Peddler::XMLParser]
+      # rubocop:disable MethodLength, ParameterLists
       def create_fulfillment_order(seller_fulfillment_order_id, displayable_order_id, displayable_order_date_time, displayable_order_comment, shipping_speed_category, destination_address, items, opts = {})
         if opts.key?(:cod_settings)
           opts['CODSettings'] = opts.delete(:cod_settings)
@@ -70,7 +72,7 @@ module MWS
               'DestinationAddress' => destination_address,
               'Items' => items
             )
-          )
+              )
           .structure!('Items', 'member')
           .structure!('NotificationEmailList', 'member')
 
@@ -95,7 +97,7 @@ module MWS
       # @return [Peddler::XMLParser]
       def update_fulfillment_order(seller_fulfillment_order_id, opts = {})
         operation('UpdateFulfillmentOrder')
-          .add(opts.merge('SellerFulfillmentOrderId' => seller_fulfillment_order_id))
+          .add(opts.update('SellerFulfillmentOrderId' => seller_fulfillment_order_id))
           .structure!('NotificationEmailList', 'member')
           .structure!('Items', 'member')
 
@@ -117,8 +119,7 @@ module MWS
       # Returns a list of fulfillment orders fulfilled on or after a date
       #
       # @see http://docs.developer.amazonservices.com/en_US/fba_outbound/FBAOutbound_ListAllFulfillmentOrders.html
-      # @param opts [Hash]
-      # @option opts [String, #iso8601] :query_start_date_time
+      # @param query_start_date_time [String, #iso8601]
       # @return [Peddler::XMLParser]
       def list_all_fulfillment_orders(query_start_date_time = nil)
         opts = query_start_date_time ? { 'QueryStartDateTime' => query_start_date_time } : {}
@@ -142,7 +143,7 @@ module MWS
       # Returns delivery tracking information for a package in an outbound
       # shipment for a Multi-Channel Fulfillment order
       def get_package_tracking_details
-        raise NotImplementedError
+        fail NotImplementedError
       end
 
       # Requests that Amazon stop attempting to fulfill an existing fulfillment

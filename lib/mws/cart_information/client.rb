@@ -16,7 +16,8 @@ module MWS
     # @note In addition to registering for Amazon MWS, you must also request
     #   authorization to use the Cart Information API section.
     class Client < ::Peddler::Client
-      path '/CartInformation/2014-03-01'
+      version "2014-03-01"
+      path "/CartInformation/#{version}"
 
       # Lists shopping carts
       #
@@ -28,7 +29,7 @@ module MWS
       # @return [Peddler::XMLParser]
       def list_carts(date_range_start, opts = {})
         operation('ListCarts')
-          .add(opts.merge('DateRangeStart' => date_range_start))
+          .add(opts.update('DateRangeStart' => date_range_start))
 
         run
       end

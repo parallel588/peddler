@@ -3,4 +3,6 @@ Gemfile.lock
 .yardoc
 bin
 coverage
+doc
 pkg
+mws.yml
