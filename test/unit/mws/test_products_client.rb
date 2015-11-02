@@ -92,6 +92,36 @@ class TestMWSProductsClient < MiniTest::Test
     assert_equal operation, @client.operation
   end
 
+  def test_gets_lowest_priced_offers_for_sku
+    operation = {
+      'Action' => 'GetLowestPricedOffersForSKU',
+      'MarketplaceId' => '123',
+      'SellerSKU' => '1',
+      'ItemCondition' => 'New'
+    }
+
+    @client.stub(:run, nil) do
+      @client.get_lowest_priced_offers_for_sku('1', 'New')
+    end
+
+    assert_equal operation, @client.operation
+  end
+
+  def test_gets_lowest_priced_offers_for_asin
+    operation = {
+      'Action' => 'GetLowestPricedOffersForASIN',
+      'MarketplaceId' => '123',
+      'ASIN' => '1',
+      'ItemCondition' => 'New'
+    }
+
+    @client.stub(:run, nil) do
+      @client.get_lowest_priced_offers_for_asin('1', 'New')
+    end
+
+    assert_equal operation, @client.operation
+  end
+
   def test_gets_lowest_offer_listings_for_asin
     operation = {
       'Action' => 'GetLowestOfferListingsForASIN',
@@ -157,6 +187,20 @@ class TestMWSProductsClient < MiniTest::Test
 
     @client.stub(:run, nil) do
       @client.get_product_categories_for_asin('1')
+    end
+
+    assert_equal operation, @client.operation
+  end
+
+  def test_queries_nonprimary_marketplaces
+    operation = {
+      'Action' => 'GetProductCategoriesForASIN',
+      'MarketplaceId' => '321',
+      'ASIN' => '1'
+    }
+
+    @client.stub(:run, nil) do
+      @client.get_product_categories_for_asin('1', marketplace_id: '321')
     end
 
     assert_equal operation, @client.operation

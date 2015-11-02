@@ -10,6 +10,8 @@ module MWS
 
       # Lists orders
       #
+      # @note When calling this operation, you must specify a time frame using
+      #   either created_after or last_updated_after.
       # @see http://docs.developer.amazonservices.com/en_US/orders/2013-09-01/Orders_ListOrders.html
       # @param opts [Hash]
       # @option opts [String, #iso8601] :created_after
@@ -25,7 +27,6 @@ module MWS
       # @option opts [String] :max_results_per_page
       # @option opts [String] :tfm_shipment_status
       # @return [Peddler::XMLParser]
-      # rubocop:disable MethodLength
       def list_orders(opts = {})
         opts[:marketplace_id] ||= primary_marketplace_id
         if opts.key?(:tfm_shipment_status)

@@ -142,6 +142,46 @@ module MWS
         run
       end
 
+      # Gets lowest priced offers for a single product, based on SellerSKU
+      #
+      # @see http://docs.developer.amazonservices.com/en_MX/products/Products_GetLowestPricedOffersForSKU.html
+      # @overload get_lowest_priced_offers_for_sku(seller_sku, item_condition, opts = { marketplace_id: primary_marketplace_id })
+      #   @param seller_sku [String]
+      #   @param item_condition [String]
+      #   @param opts [Hash]
+      #   @option opts [String] :marketplace_id
+      # @return [Peddler::XMLParser]
+      def get_lowest_priced_offers_for_sku(seller_sku, item_condition, opts = {})
+        opts.update(
+          'SellerSKU' => seller_sku,
+          'ItemCondition' => item_condition
+        )
+        operation_with_marketplace('GetLowestPricedOffersForSKU')
+          .add(opts)
+
+        run
+      end
+
+      # Gets lowest priced offers for a single product, based on ASIN
+      #
+      # @see http://docs.developer.amazonservices.com/en_MX/products/Products_GetLowestPricedOffersForASIN.html
+      # @overload get_lowest_priced_offers_for_sku(asin, item_condition, opts = { marketplace_id: primary_marketplace_id })
+      #   @param asin [String]
+      #   @param item_condition [String]
+      #   @param opts [Hash]
+      #   @option opts [String] :marketplace_id
+      # @return [Peddler::XMLParser]
+      def get_lowest_priced_offers_for_asin(asin, item_condition, opts = {})
+        opts.update(
+          'ASIN' => asin,
+          'ItemCondition' => item_condition
+        )
+        operation_with_marketplace('GetLowestPricedOffersForASIN')
+          .add(opts)
+
+        run
+      end
+
       # Gets pricing information for seller's own offer listings, based on
       # Seller SKU
       #
@@ -223,11 +263,9 @@ module MWS
       end
 
       # @api private
-      def operation_with_marketplace(*args)
-        operation(*args).tap do |opts|
-          unless opts.key?('MarketplaceId')
-            opts.store('MarketplaceId', primary_marketplace_id)
-          end
+      def operation_with_marketplace(action)
+        operation(action).tap do |opts|
+          opts.store('MarketplaceId', primary_marketplace_id)
         end
       end
     end
